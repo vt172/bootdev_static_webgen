@@ -30,6 +30,7 @@ class TestTextNode(unittest.TestCase):
 
         node3 = TextNode("Same text", TextType.BOLD, "https://example.com")
         self.assertNotEqual(node1,node3)
+        
 
 if __name__ == "__main__":
     unittest.main()
