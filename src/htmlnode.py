@@ -45,3 +45,34 @@ class LeafNode(HTMLNode):
 			return self.value
 		else:
 			return f"<{self.tag}{super().props_to_html()}>{self.value}</{self.tag}>"
+
+## Our new ParentNode class will handle the nesting of HTML nodes inside of one another.
+## Any HTML node that's not "leaf" node (i.e. it has children) is a "parent" node.
+
+class ParentNode(HTMLNode):
+	def __init__(self, tag, children, props=None):
+		super().__init__(tag=tag,value=None,children=children,props=props)
+
+	def to_html(self, child_list=None):
+		if self.tag == None:
+			raise ValueError("All parent nodes must have a value.")
+		elif self.children == None:
+			raise ValueError("All parent nodes must have children nodes.")
+		elif child_list == None:
+			child_list = self.children
+
+		result = f"<{self.tag}{super().props_to_html()}>"
+
+		if len(child_list) <= 1:
+			result += child_list[0].to_html()
+		else:
+			for child in child_list:
+				result += child.to_html() #TOCHANGE this was vibe coding without understanding...
+
+		result += f"</{self.tag}>"
+		return result
+
+
+node = ParentNode("p", [LeafNode("b", "Bold text"),LeafNode(None, "Normal text"),LeafNode("i", "italic text"),LeafNode(None, "Normal text")])
+node1 = ParentNode("p", [LeafNode("b","Bold text")])
+print(node.to_html())
