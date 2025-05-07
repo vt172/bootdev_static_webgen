@@ -6,14 +6,14 @@ class HTMLNode():
 		self.props = props
 
 	def __eq__(self,other):
-	        if not isinstance(other, HTMLNode):
-	            return False
-	        return (
-	            self.tag == other.tag and
-	            self.value == other.value and
-	            self.children == other.children and
-	            self.props == other.props
-	        )
+			if not isinstance(other, HTMLNode):
+				return False
+			return (
+				self.tag == other.tag and
+				self.value == other.value and
+				self.children == other.children and
+				self.props == other.props
+			)
 
 	def to_html(self):
 		raise NotImplementedError("Not implemented here")
@@ -23,7 +23,7 @@ class HTMLNode():
 		if self.props:
 			props = self.props.items()
 		else:
-		    return results
+			return results
 		for prop in props:
 			results += f' {prop[0]}="{prop[1]}"'
 		return results
