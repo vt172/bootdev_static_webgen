@@ -48,7 +48,6 @@ class LeafNode(HTMLNode):
 
 ## Our new ParentNode class will handle the nesting of HTML nodes inside of one another.
 ## Any HTML node that's not "leaf" node (i.e. it has children) is a "parent" node.
-
 class ParentNode(HTMLNode):
 	def __init__(self, tag, children, props=None):
 		super().__init__(tag=tag,value=None,children=children,props=props)
@@ -73,6 +72,3 @@ class ParentNode(HTMLNode):
 		return result
 
 
-node = ParentNode("p", [LeafNode("b", "Bold text"),LeafNode(None, "Normal text"),LeafNode("i", "italic text"),LeafNode(None, "Normal text")])
-node1 = ParentNode("p", [LeafNode("b","Bold text")])
-print(node.to_html())
