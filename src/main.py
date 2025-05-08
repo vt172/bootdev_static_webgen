@@ -20,7 +20,7 @@ def text_node_to_html_node(text_node):
 	elif text_node.text_type == TextType.CODE.value:
 		return LeafNode(tag="code",value=text_node.text)
 	elif text_node.text_type == TextType.LINK.value:
-		return LeafNode(tag="a",value=text_node.text,props="href") # HERE I am puting a comment
+		return LeafNode(tag="a",value=text_node.text,props={"href": text_node.url) # HERE I am puting a comment
 
 def main():
 	result = TextNode("This is some anchor text","bold")
