@@ -20,10 +20,12 @@ def text_node_to_html_node(text_node):
 	elif text_node.text_type == TextType.CODE.value:
 		return LeafNode(tag="code",value=text_node.text)
 	elif text_node.text_type == TextType.LINK.value:
-		return LeafNode(tag="a",value=text_node.text,props={"href": text_node.url) # HERE I am puting a comment
+		return LeafNode(tag="a",value=text_node.text,props={"href": text_node.url})
+	elif text_node.text_type == TextType.IMAGE.value:
+		return LeafNode(tag='img',value='',{'src': text_node.url,'alt': text_node.value})
 
 def main():
-	result = TextNode("This is some anchor text","bold")
+	result = TextNode("This is some anchor text","link","https://google.com")
 	print(f"...{result}")
 	print(f"...{text_node_to_html_node(result)}")
 
