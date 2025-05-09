@@ -24,7 +24,7 @@ def text_node_to_html_node(text_node):
 	elif text_node.text_type == TextType.IMAGE.value:
 		return LeafNode(tag='img',value='',{'src': text_node.url,'alt': text_node.value})
 	else:
-		raise Exception("Type unsupported")
+		raise Exception("Type unsupported.")
 
 def main():
 	result = TextNode("This is some anchor text","link","https://google.com")
