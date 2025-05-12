@@ -1,4 +1,5 @@
 from enum import Enum
+from htmlnode import *
 
 class TextType(Enum):
     TEXT = "text"
@@ -36,18 +37,18 @@ class TextNode():
 #    TextType.LINK: "a" tag, anchor text, and "href" prop
 #    TextType.IMAGE: "img" tag, empty string value, "src" and "alt" props ("src" is the image URL, "alt" is the alt text)
 
-def text_node_to_html_node(text_node):
-    if text_node.text_type == TextType.TEXT.value:
+def textnode_to_htmlnode(text_node):
+    if text_node.text_type == TextType.TEXT:
         return LeafNode(tag=None,value=text_node.text)
-    elif text_node.text_type == TextType.BOLD.value:
+    elif text_node.text_type == TextType.BOLD:
         return LeafNode(tag="b",value=text_node.text)
-    elif text_node.text_type == TextType.ITALIC.value:
+    elif text_node.text_type == TextType.ITALIC:
         return LeafNode(tag="i",value=text_node.text)
-    elif text_node.text_type == TextType.CODE.value:
+    elif text_node.text_type == TextType.CODE:
         return LeafNode(tag="code",value=text_node.text)
-    elif text_node.text_type == TextType.LINK.value:
+    elif text_node.text_type == TextType.LINK:
         return LeafNode(tag="a",value=text_node.text,props={"href": text_node.url})
-    elif text_node.text_type == TextType.IMAGE.value:
-        return LeafNode(tag='img',value='',props={'src': text_node.url,'alt': text_node.value})
+    elif text_node.text_type == TextType.IMAGE:
+        return LeafNode(tag='img',value='',props={'src': text_node.url,'alt': text_node.text})
     else:
         raise Exception("Type unsupported.")
