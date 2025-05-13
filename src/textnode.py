@@ -52,3 +52,21 @@ def textnode_to_htmlnode(text_node):
         return LeafNode(tag='img',value='',props={'src': text_node.url,'alt': text_node.text})
     else:
         raise Exception("Type unsupported.")
+
+# Now that we can convert TextNodes to HTMLNodes, we need to be able to create TextNodes from raw markdown strings
+
+def split_delimiter(nodes,delimiter,text_type):
+    for node in nodes:
+        if node.text_type != TextType.TEXT:
+            return nodes
+        split_nodes = node.text.split(delimiter)
+        
+
+node = TextNode("This is text with a `code block` word. `nice` no `nice`", TextType.TEXT)
+new_nodes = split_delimiter([node], "`", TextType.CODE)
+print(new_nodes)
+
+
+
+
+
