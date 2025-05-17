@@ -60,11 +60,7 @@ def split_delimiter(nodes,delimiter,text_type):
         if node.text_type != TextType.TEXT:
             return nodes
         if delimiter in node:
-            node_index = node.text.find(delimiter)
-            print(node.text[0:node_index])
-            print(node.text[21:].find(delimiter))
-            print(node.text[21:30])
-        
+            pass 
 
 node = TextNode("This is text with a `code block` word. `nice` no `nice`", TextType.TEXT)
 new_nodes = split_delimiter([node], "`", TextType.CODE)
