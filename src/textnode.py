@@ -57,36 +57,36 @@ def textnode_to_htmlnode(text_node):
 # split_delimiter takes a list of nodes, a delimiter and its corresponding text_type
 # it returns a new_nodes list of TextNodes. They have been 'split' using the delimiter. It doesn't support nested delimiters for now
 
-def split_delimiter(old_nodes,delimiter,text_type):
+def split_node_delimiter(old_nodes,delimiter,text_type):
     new_nodes = []
-    for node in old_nodes:
-        if node.text_type != TextType.TEXT:
-            new_nodes.append(node)
 
-        is_in_delimiter = False
-        txt_so_far = ""
-        for char in node.text:
-            if char == delimiter and is_in_delimiter == True:
-                print(f"I'm in, here's the character : {char}, and the text so far {txt_so_far}")
-                if txt_so_far:
-                    new_node = TextNode(txt_so_far,text_type)
-                    new_nodes.append(new_node)
-                is_in_delimiter = not is_in_delimiter
-                txt_so_far = ""
-            elif char == delimiter and is_in_delimiter == False:
-                print(f"I'm not in, here's the character : {char}, and the text so far {txt_so_far}")
-                if txt_so_far:
-                    new_node = TextNode(txt_so_far,TextType.TEXT)
-                    new_nodes.append(new_node)
-                is_in_delimiter = not is_in_delimiter
-                txt_so_far = ""
+    for node in old_nodes:
+        if node.text_type != TextType.TEXT or delimiter not in node.text:
+            new_nodes.append(node)
+            continue
+        node_text_split = node.text.split(delimiter)
+
+        if node_text_split[0] == "":
+            is_in_delimiter = True
+        else:
+            is_in_delimiter = False
+
+        for text in node_text_split:
+            print(text,is_in_delimiter)
+            if not text:
+                continue
+            if is_in_delimiter == True:
+                new_node = TextNode(text,text_type)
+                new_nodes.append(new_node)
             else:
-                print("else")
-                txt_so_far += char
+                new_node = TextNode(text,TextType.TEXT)
+                new_nodes.append(new_node)
+            is_in_delimiter = not is_in_delimiter
 
     return new_nodes
 
 
-node = TextNode("`This is text with a `code block` word. `nice` no `nice``nice`", TextType.TEXT)
-new_nodes = split_delimiter([node], "`", TextType.CODE)
+
+node = TextNode("`This is text with a `code block` word. ````nice` no `nice``nice`", TextType.TEXT)
+new_nodes = split_node_delimiter([node], "`", TextType.CODE)
 print(new_nodes)
