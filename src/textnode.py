@@ -53,20 +53,40 @@ def textnode_to_htmlnode(text_node):
     else:
         raise Exception("Type unsupported.")
 
-# Now that we can convert TextNodes to HTMLNodes, we need to be able to create TextNodes from raw markdown strings
+# Now that we can convert TextNodes to HTMLNodes, we need to be able to create TextNodes from raw markdown strings. 
+# split_delimiter takes a list of nodes, a delimiter and its corresponding text_type
+# it returns a new_nodes list of TextNodes. They have been 'split' using the delimiter. It doesn't support nested delimiters for now
 
-def split_delimiter(nodes,delimiter,text_type):
-    for node in nodes:
+def split_delimiter(old_nodes,delimiter,text_type):
+    new_nodes = []
+    for node in old_nodes:
         if node.text_type != TextType.TEXT:
-            return nodes
-        if delimiter in node:
-            pass 
+            new_nodes.append(node)
 
-node = TextNode("This is text with a `code block` word. `nice` no `nice`", TextType.TEXT)
+        is_in_delimiter = False
+        txt_so_far = ""
+        for char in node.text:
+            if char == delimiter and is_in_delimiter == True:
+                print(f"I'm in, here's the character : {char}, and the text so far {txt_so_far}")
+                if txt_so_far:
+                    new_node = TextNode(txt_so_far,text_type)
+                    new_nodes.append(new_node)
+                is_in_delimiter = not is_in_delimiter
+                txt_so_far = ""
+            elif char == delimiter and is_in_delimiter == False:
+                print(f"I'm not in, here's the character : {char}, and the text so far {txt_so_far}")
+                if txt_so_far:
+                    new_node = TextNode(txt_so_far,TextType.TEXT)
+                    new_nodes.append(new_node)
+                is_in_delimiter = not is_in_delimiter
+                txt_so_far = ""
+            else:
+                print("else")
+                txt_so_far += char
+
+    return new_nodes
+
+
+node = TextNode("`This is text with a `code block` word. `nice` no `nice``nice`", TextType.TEXT)
 new_nodes = split_delimiter([node], "`", TextType.CODE)
 print(new_nodes)
-
-
-
-
-
