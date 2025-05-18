@@ -87,6 +87,6 @@ def split_node_delimiter(old_nodes,delimiter,text_type):
 
 
 
-node = TextNode("`This is text with a `code block` word. ````nice` no `nice``nice`", TextType.TEXT)
+node = TextNode("`1``````2`", TextType.TEXT)
 new_nodes = split_node_delimiter([node], "`", TextType.CODE)
 print(new_nodes)
