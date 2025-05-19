@@ -110,5 +110,11 @@ class Test_split_nodes_delimiter(unittest.TestCase):
 		nodes = [LeafNode("code","Text with `code` inside")]
 		self.assertRaises(Exception, split_nodes_delimiter, nodes, "`", TextType.CODE)
 
+class Test_extract_markdown_images(unittest.TestCase):
+	def test_basic_images(self):
+		results = extract_markdown_images("This is text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif) and ![obi wan](https://i.imgur.com/fJRm4Vk.jpeg)")
+		expectations = [('rick roll', 'https://i.imgur.com/aKaOqIh.gif'), ('obi wan', 'https://i.imgur.com/fJRm4Vk.jpeg')]                                                                                                                                                                
+		self.assertEqual(results,expectations)
+
 if __name__ == "__main__":
 	unittest.main()
