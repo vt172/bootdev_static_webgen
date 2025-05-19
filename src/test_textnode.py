@@ -56,10 +56,50 @@ class Test_textnode_to_htmlnode(unittest.TestCase):
 	def test_link(self):
 		node1 = textnode_to_htmlnode(TextNode("This is link",TextType.LINK,url="https://google.com"))
 		node2 = LeafNode(tag="a",value="This is link",props={"href": "https://google.com"})
+		self.assertEqual(node1,node2)
 
 	def test_image(self):
 		node1 = textnode_to_htmlnode(TextNode("This is image",TextType.IMAGE,url="https://wallpapers.com/images/high/nyan-cat-1920-x-1080-background-1ldrgvod52e6vi0m.webp"))
 		node2 = LeafNode(tag="img",value="",props={'src':"https://wallpapers.com/images/high/nyan-cat-1920-x-1080-background-1ldrgvod52e6vi0m.webp", 'alt':"This is image"})
+		self.assertEqual(node1,node2)
+
+class Test_split_nodes_delimiter(unittest.TestCase):
+	def test_one_delimiter(self):
+		nodes1 = [
+			TextNode("Text with ",TextType.TEXT),
+			TextNode("code",TextType.CODE)
+		]
+		nodes2 = split_nodes_delimiter([TextNode("Text with `code`",TextType.TEXT)],"`",TextType.CODE)
+		self.assertEqual(nodes1,nodes2)
+
+	def test_doublechar_delimiter(self):
+		nodes1 = [
+			TextNode("Text with ", TextType.TEXT),
+			TextNode("bold", TextType.BOLD)
+		]
+		nodes2 = split_nodes_delimiter([TextNode("Text with **bold**",TextType.TEXT)],"**",TextType.BOLD)
+		self.assertEqual(nodes1,nodes2)
+
+	def test_multiple_nodes(self):
+		nodes = [
+			TextNode("Text with `code`", TextType.TEXT),
+			TextNode("Text with **bold**", TextType.TEXT)
+		]
+		nodes1 = [
+			TextNode("Text with ", TextType.TEXT),
+			TextNode("code", TextType.CODE),
+			TextNode("Text with **bold**", TextType.TEXT),
+		]
+		nodes2 = split_nodes_delimiter(nodes,"`",TextType.CODE)
+		self.assertEqual(nodes1,nodes2)
+
+	def test_not_text(self):
+		nodes1 = [TextNode("Bold Text", TextType.BOLD)]
+		nodes2 = split_nodes_delimiter([TextNode("Bold Text",TextType.BOLD)],"",TextType.BOLD)
+		self.assertEqual(nodes1,nodes2)
+
+	def test_unmatched_delimiter(self):
+		pass		
 
 if __name__ == "__main__":
 	unittest.main()

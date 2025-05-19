@@ -79,6 +79,10 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
             continue
         if node.text.count(delimiter) % 2 != 0:
             raise Exception("For every delimiter, there should be a matching delimiter") 
+        if delimiter == "":
+            raise Exception("A delimiter cannot be empty")
+        if not isinstance(node,TextNode):
+            raise Exception("This functions works with TextNode, please insert a list of TextNode instead")
         node_text_split = node.text.split(delimiter)
 
         in_delimiter = node_text_split[0] == ""
