@@ -99,7 +99,16 @@ class Test_split_nodes_delimiter(unittest.TestCase):
 		self.assertEqual(nodes1,nodes2)
 
 	def test_unmatched_delimiter(self):
-		pass		
+		nodes = [TextNode("Text with `code inse", TextType.TEXT)]
+		self.assertRaises(Exception, split_nodes_delimiter, nodes, "`", TextType.CODE)	
+
+	def test_empty_delimiter(self):
+		nodes = [TextNode("Text with `code` inside", TextType.TEXT)]
+		self.assertRaises(Exception, split_nodes_delimiter, nodes, "", TextType.CODE)
+
+	def test_not_TextNode(self):
+		nodes = [LeafNode("code","Text with `code` inside")]
+		self.assertRaises(Exception, split_nodes_delimiter, nodes, "`", TextType.CODE)
 
 if __name__ == "__main__":
 	unittest.main()
