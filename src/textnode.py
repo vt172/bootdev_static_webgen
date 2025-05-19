@@ -80,21 +80,26 @@ def split_node_delimiter(old_nodes, delimiter, text_type):
         node_text_split = node.text.split(delimiter)
 
         if node_text_split[0] == "":
-            is_in_delimiter = True
+            starts_with_delimiter = True
         else:
-            is_in_delimiter = False
+            starts_with_delimiter = False
 
-        for text in node_text_split:
-            if not text:
-                continue
-            if is_in_delimiter is True:
-                new_node = TextNode(text, text_type)
-                new_nodes.append(new_node)
+        node_text_split = list(filter(lambda x: x.strip(),node_text_split))
+
+        for i, text in enumerate(node_text_split,start=1):
+            if starts_with_delimiter:
+                if i % 2 == 0:
+                    print("even: ", node)
+                    node = TextNode(text, TextType.TEXT)
+                else:
+                    node = TextNode(text, text_type)
+                    print("uneven: ", node)
             else:
-                new_node = TextNode(text, TextType.TEXT)
-                new_nodes.append(new_node)
-            is_in_delimiter = not is_in_delimiter
-
+                if i % 2 == 0:
+                    node = TextNode(text, text_type)
+                else:
+                    node = TextNode(text, TextType.TEXT)
+            new_nodes.append(node)
             # Ok the problem so far is that it doesn't
             # - handle unmatched delimiter
             # - still get confused when the first is a delimiter
@@ -102,6 +107,6 @@ def split_node_delimiter(old_nodes, delimiter, text_type):
     return new_nodes
 
 
-node = TextNode("**bo**ld**", TextType.TEXT)
-new_nodes = split_node_delimiter([node], "**", TextType.BOLD)
+node = TextNode("`code is a fantastic way of `expressing` yourself.`", TextType.TEXT)
+new_nodes = split_node_delimiter([node], "`", TextType.CODE)
 print(new_nodes)
