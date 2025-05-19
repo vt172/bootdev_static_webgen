@@ -70,43 +70,38 @@ def textnode_to_htmlnode(text_node):
 # delimiter. It doesn't support nested delimiters for now
 
 
-def split_node_delimiter(old_nodes, delimiter, text_type):
+def split_nodes_delimiter(old_nodes, delimiter, text_type):
     new_nodes = []
 
     for node in old_nodes:
         if node.text_type != TextType.TEXT or delimiter not in node.text:
             new_nodes.append(node)
             continue
+        if node.text.count(delimiter) % 2 != 0:
+            raise Exception("For every delimiter, there should be a matching delimiter") 
         node_text_split = node.text.split(delimiter)
 
-        if node_text_split[0] == "":
-            starts_with_delimiter = True
-        else:
-            starts_with_delimiter = False
+        in_delimiter = node_text_split[0] == ""
 
-        node_text_split = list(filter(lambda x: x.strip(),node_text_split))
+        for text in node_text_split:
+            if in_delimiter and text:
+                new_node = TextNode(text,text_type)
+                in_delimiter = not in_delimiter
+                new_nodes.append(new_node)
 
-        for i, text in enumerate(node_text_split,start=1):
-            if starts_with_delimiter:
-                if i % 2 == 0:
-                    print("even: ", node)
-                    node = TextNode(text, TextType.TEXT)
-                else:
-                    node = TextNode(text, text_type)
-                    print("uneven: ", node)
-            else:
-                if i % 2 == 0:
-                    node = TextNode(text, text_type)
-                else:
-                    node = TextNode(text, TextType.TEXT)
-            new_nodes.append(node)
-            # Ok the problem so far is that it doesn't
-            # - handle unmatched delimiter
-            # - still get confused when the first is a delimiter
+            elif not in_delimiter and text:
+                new_node = TextNode(text,TextType.TEXT)
+                in_delimiter = not in_delimiter
+                new_nodes.append(new_node)
+            elif not text:
+                in_delimiter = not in_delimiter
+                continue
 
     return new_nodes
 
 
-node = TextNode("`code is a fantastic way of `expressing` yourself.`", TextType.TEXT)
-new_nodes = split_node_delimiter([node], "`", TextType.CODE)
+node = TextNode("`code```", TextType.TEXT)
+new_nodes = split_nodes_delimiter([node], "`", TextType.CODE)
 print(new_nodes)
+for node in new_nodes:
+    print(textnode_to_htmlnode(node))
