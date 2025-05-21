@@ -123,5 +123,22 @@ class Test_extract_markdwon_link(unittest.TestCase):
 		expectations = [("to boot dev", "https://www.boot.dev"), ("to youtube", "https://www.youtube.com/@bootdotdev")]
 		self.assertEqual(results,expectations)
 
+class Test_split_nodes_images(unittest.TestCase):
+	def test_basic_link(self):
+		node = TextNode(
+		    "This is text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif) and ![obi wan](https://i.imgur.com/fJRm4Vk.jpeg)",
+		    TextType.TEXT,
+		)
+		results = split_nodes_images([node])
+		expectations = [
+		     TextNode("This is text with a link ", TextType.TEXT),
+		     TextNode("to boot dev", TextType.LINK, "https://www.boot.dev"),
+		     TextNode(" and ", TextType.TEXT),
+		     TextNode(
+		         "to youtube", TextType.LINK, "https://www.youtube.com/@bootdotdev"
+		     ),
+		]
+		self.assertEqual(results,expectations)
+
 if __name__ == "__main__":
 	unittest.main()
