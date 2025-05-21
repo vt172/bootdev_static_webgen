@@ -190,5 +190,4 @@ def text_to_textnode(text):
 		new_nodes = split_nodes_delimiter(new_nodes, "`", TextType.CODE)
 		new_nodes = split_nodes_image(new_nodes)
 		new_nodes = split_nodes_link(new_nodes)
-	print(new_nodes)
 	return new_nodes
