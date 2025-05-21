@@ -90,34 +90,50 @@ def extract_markdown_images(text):
 def extract_markdown_link(text):
 	return re.findall(r"(?<!!)\[([^\[\]]*)\]\(([^\(\)]*)\)", text)
 
-def split_nodes_images(old_nodes):
+
+def split_nodes_image(old_nodes):
 	new_nodes = []
 
-	# Inner recursive Function
-	def recursive_split_images(text, images)
-			# Base Case : images is a list of tuples. if empty, it means that there is 
-			# no more images add therefore we reached to bottom of the recursion.
-			if not images:
-				return [TextNode(text,TextType.TEXT)]
-			# Recursive Case
-			else:
-				# unpacking the first tuple
-				alt_text, url = images[0]
-				# splitting the text in 2, before the image and after
-				split_nodes = node.text.split(f"![{alt_text}]({url})", 1)
-				# assigning it
-				before_image_text = split_nodes[0]
-				after_image_text = split_nodes[1]	
-				
-				# no need to create a new textnode if the string is empty
-				if before_image_text:
-					before_image_node = TextNode(before_image_text,TextType.TEXT)
-				# using the alt_text and url to create the node.
+	# Inner recursive Function. It splits a string using a list of tuples, and returns a list
+	# of TextNode elements. 
+	# The list of tuples represents the alternative text and the corresponding url.
+	def recursive_split_image(text, images):
+		# Base Case : images is a list of tuples. if empty, it means that there is 
+		# no more images to use therefore we reached to bottom of the recursion.
+		# text is also tested so that we don't create empty TextNodes.
+		if not images and text:
+			return [TextNode(text,TextType.TEXT)]
+		elif not images and not text:
+			return []
+
+		# Recursive Case
+		else:
+			# unpacking the first tuple
+			alt_text, url = images[0]
+			# splitting the text in 2, before the image and after
+			split_nodes = text.split(f"![{alt_text}]({url})", 1)
+			# assigning it
+			before_image_text = split_nodes[0]
+			after_image_text = split_nodes[1]	
+			
+			# no need to create a new textnode if the string is empty
+			if before_image_text:
+				before_image_node = TextNode(before_image_text,TextType.TEXT)
 				image_node = TextNode(alt_text,TextType.IMAGE,url=url)
-				# the recursive call, we are supposed to receive a list of nodes here
-				return [before_image_node, image_node].extend(
-						recursive_split_images(after_image_text,images[1:])
-					)
+
+				# the recursive call
+				results = [before_image_node, image_node]
+				results += recursive_split_image(after_image_text,images[1:])
+				return results
+				
+			# there is an else case not to add before_image_node to the results
+			else:
+				image_node = TextNode(alt_text,TextType.IMAGE,url=url)
+
+				# same here
+				results = [image_node]
+				results += recursive_split_image(after_image_text,images[1:])
+				return results
 
 	# Now looping through all the nodes
 	for node in old_nodes:	
@@ -125,7 +141,8 @@ def split_nodes_images(old_nodes):
 			new_nodes.append(node)
 			continue
 		if not isinstance(node,TextNode):
-			raise Exception("This functions works with TextNode, please insert a list of TextNode instead")
+			raise Exception("This functions works with TextNode, please insert a list of TextNode objects instead")
+		if not node.text:
 			continue
 
 		# We are using the helper function to extract a list of tuples containing text
@@ -133,18 +150,69 @@ def split_nodes_images(old_nodes):
 		images = extract_markdown_images(node.text)
 
 		# We extend the list with the results of the inner function
-		new_nodes.extend(recursive_split_images(node.text, images))
+		new_nodes += recursive_split_image(node.text, images)
 
 	return new_nodes
 
+def split_nodes_link(old_nodes):
+	new_nodes = []
 
+	# Inner recursive Function. It splits a string using a list of tuples, and returns a list
+	# of TextNode elements. 
+	# The list of tuples represents the alternative text and the corresponding url.
+	def recursive_split_image(text, links):
+		# Base Case : links is a list of tuples. if empty, it means that there is 
+		# no more links to use therefore we reached to bottom of the recursion.
+		# text is also tested so that we don't create empty TextNodes.
+		if not links and text:
+			return [TextNode(text,TextType.TEXT)]
+		elif not links and not text:
+			return []
 
+		# Recursive Case
+		else:
+			# unpacking the first tuple
+			alt_text, url = links[0]
+			# splitting the text in 2, before the link and after
+			split_nodes = text.split(f"![{alt_text}]({url})", 1)
+			# assigning it
+			before_link_text = split_nodes[0]
+			after_link_text = split_nodes[1]	
+			
+			# no need to create a new textnode if the string is empty
+			if before_link_text:
+				before_linke_node = TextNode(before_link_text,TextType.TEXT)
+				link_node = TextNode(alt_text,TextType.IMAGE,url=url)
 
+				# the recursive call
+				results = [before_link_node, link_node]
+				results += recursive_split_image(after_image_text,images[1:])
+				return results
+				
+			# there is an else case not to add before_link_node to the results
+			else:
+				link_node = TextNode(alt_text,TextType.IMAGE,url=url)
 
-	return new_nodes 
+				# same here
+				results = [link_node]
+				results += recursive_split_link(after_link_text,links[1:])
+				return results
 
-node = TextNode(
-	"This is text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif) and ![obi wan](https://i.imgur.com/fJRm4Vk.jpeg)",
-    TextType.TEXT,
-	)
-split_nodes_images([node])
+	# Now looping through all the nodes
+	for node in old_nodes:	
+		if node.text_type != TextType.TEXT:
+			new_nodes.append(node)
+			continue
+		if not isinstance(node,TextNode):
+			raise Exception("This functions works with TextNode, please insert a list of TextNode objects instead")
+		if not node.text:
+			continue
+
+		# We are using the helper function to extract a list of tuples containing text
+		# and image link
+		links = extract_markdown_links(node.text)
+
+		# We extend the list with the results of the inner function
+		new_nodes += recursive_split_link(node.text, links)
+
+	return new_nodes

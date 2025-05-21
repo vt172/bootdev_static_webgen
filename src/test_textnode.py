@@ -123,22 +123,46 @@ class Test_extract_markdwon_link(unittest.TestCase):
 		expectations = [("to boot dev", "https://www.boot.dev"), ("to youtube", "https://www.youtube.com/@bootdotdev")]
 		self.assertEqual(results,expectations)
 
-class Test_split_nodes_images(unittest.TestCase):
+class Test_split_nodes_image(unittest.TestCase):
 	def test_basic_link(self):
 		node = TextNode(
 		    "This is text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif) and ![obi wan](https://i.imgur.com/fJRm4Vk.jpeg)",
 		    TextType.TEXT,
 		)
-		results = split_nodes_images([node])
+		results = split_nodes_image([node])
 		expectations = [
-		     TextNode("This is text with a link ", TextType.TEXT),
-		     TextNode("to boot dev", TextType.LINK, "https://www.boot.dev"),
+		     TextNode("This is text with a ", TextType.TEXT),
+		     TextNode("rick roll", TextType.IMAGE, "https://i.imgur.com/aKaOqIh.gif"),
 		     TextNode(" and ", TextType.TEXT),
 		     TextNode(
-		         "to youtube", TextType.LINK, "https://www.youtube.com/@bootdotdev"
+		         "obi wan", TextType.IMAGE, "https://i.imgur.com/fJRm4Vk.jpeg"
 		     ),
 		]
 		self.assertEqual(results,expectations)
+
+	def test_nobefore_nospace(self):
+		results = split_nodes_image([TextNode("![alt1](url1)![alt2](url2)",TextType.TEXT)])
+		expectations = [
+			TextNode("alt1", TextType.IMAGE, url="url1"),
+			TextNode("alt2", TextType.IMAGE, url="url2")
+		]
+		self.assertEqual(results,expectations)
+
+	def test_empty_TextNode(self):
+		results = split_nodes_image([TextNode("",TextType.TEXT)])
+		expectations = []
+		self.assertEqual(results,expectations)
+		
+	def test_space_and_aftertext(self):
+		results = split_nodes_image([TextNode("![a](url1) text ![b](url2) end", TextType.TEXT)])
+		expectations = [
+			TextNode("a", TextType.IMAGE, url="url1"),
+			TextNode(" text ", TextType.TEXT),
+			TextNode("b", TextType.IMAGE, url="url2"),
+			TextNode(" end", TextType.TEXT)
+		]
+		self.assertEqual(results,expectations)
+# Since the function for links is basically copy and paste of images I'm not testing it here.
 
 if __name__ == "__main__":
 	unittest.main()
