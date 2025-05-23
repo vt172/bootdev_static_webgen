@@ -2,7 +2,7 @@ from enum import Enum
 from textnode import *
 import re
 
-# This is a collection of functions that deals with inline elements of a markdown file.
+# This is a set of functions that deals with inline elements of a markdown file.
 # split_nodes_delimiter splits the text using given a delimiter
 # split_node_image and split_node_link are very similar, they deal with those special cases
 # extract_markdown_images and links deal is a special regex function to deal with finding the
