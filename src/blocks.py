@@ -27,15 +27,15 @@ def markdown_to_blocks(text):
 	return blocks
 
 def block_to_blocktype(block):
-	if re.findall(r"^#{1,6}\ .+", block):
+	if re.findall(r"(^#{1,6}\ .+)|((^\s#{1,6}\ .+))", block):
 		return BlockType.HEADING
-	if re.findall(r"^```[\s\S]*?```$", block):
+	if re.findall(r"(^```[\s\S]*?```$)|(^\s```[\s\S]*?```$)", block):
 		return BlockType.CODE
-	if re.findall(r"^(>.*\n?)+$", block):
+	if re.findall(r"(^(>.*\n?)+$)|(^\s(>.*\n?)+$)", block):
 		return BlockType.QUOTE
-	if re.findall(r"^(-.*\n?)+$", block):
+	if re.findall(r"(^(-.*\n?)+$)|(^\s(-.*\n?)+$)", block):
 		return BlockType.ULIST
-	if re.findall(r"\d. .+", block):
+	if re.findall(r"(\d. .+)|(\s\d. .+)", block):
 		split_lines = block.split("\n")
 		i = 1
 		is_olist = True
