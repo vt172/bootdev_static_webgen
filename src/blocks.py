@@ -1,5 +1,13 @@
 from enum import Enum
+import re
 
+class BlockType(Enum):
+	PARAGRAPH = "paragraph"
+	HEADING = "heading"
+	CODE = "code"
+	QUOTE = "quote"
+	ULIST = "unordered_list"
+	OLIST = "ordered_list"
 
 def markdown_to_blocks(text):
 	blocks = text.split("\n\n")
@@ -18,3 +26,29 @@ def markdown_to_blocks(text):
 
 	return blocks
 
+def block_to_blocktype(block):
+	if re.findall(r"^#{1,6}\ .+", block):
+		return BlockType.HEADING
+	if re.findall(r"^```[\s\S]*?```$", block):
+		return BlockType.CODE
+	if re.findall(r"^(>.*\n?)+$", block):
+		return BlockType.QUOTE
+	if re.findall(r"^(-.*\n?)+$", block):
+		return BlockType.ULIST
+	if re.findall(r"\d. .+", block):
+		split_lines = block.split("\n")
+		i = 1
+		is_olist = True
+		for line in split_lines:
+			line = line.strip(' ')
+			if int(line[0]) == i:
+				i += 1
+			else:
+				is_olist = False
+				break
+		if is_olist:
+			return BlockType.OLIST
+		return BlockType.PARAGRAPH
+
+	else:
+		return BlockType.PARAGRAPH
