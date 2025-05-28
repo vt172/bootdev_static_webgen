@@ -40,14 +40,16 @@ def block_to_blocktype(block):
 
 	## creating a checklist
 	for line in lines:
-		line = line.strip()
-		if re.findall(r"^>\s.*", line):
+		line = line.lstrip()
+		if re.match(r">", line):
 			blocktype_checklist.append("quote")
 			continue
-		if re.findall(r"^-\s.*", line):
+		if re.match(r"-\s", line):
 			blocktype_checklist.append("ulist")
 			continue
-		olist_match = re.match(r"(\d)+\.\s", line)
+		# Ordered Lists : First the re.match creates an object where our digit is contained. 
+		# we then access it through the .group() method
+		olist_match = re.match(r"(\d+)\.\s", line)
 		if olist_match and int(olist_match.group(1)) == i:
 			blocktype_checklist.append("olist")
 			i+=1
@@ -67,4 +69,4 @@ def block_to_blocktype(block):
 		return BlockType.PARAGRAPH
 
 
-print(block_to_blocktype("1. an item\n 32. an item\n 3. an item"))
+print(block_to_blocktype("> one item\n> \n> one another item"))
