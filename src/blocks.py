@@ -27,6 +27,10 @@ def markdown_to_blocks(text):
 	return blocks
 
 def block_to_blocktype(block):
+	# Empty block handling
+	if not block:
+		return None
+
 	# easy cases : no need for multiline checks
 	if re.findall(r"^#{1,6}\ .*", block):
 		return BlockType.HEADING
@@ -67,6 +71,3 @@ def block_to_blocktype(block):
 		return BlockType.OLIST
 	else:
 		return BlockType.PARAGRAPH
-
-
-print(block_to_blocktype("> one item\n> \n> one another item"))

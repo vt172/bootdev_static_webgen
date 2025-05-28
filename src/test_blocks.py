@@ -78,8 +78,39 @@ class Test_block_to_blocktype(unittest.TestCase):
 		self.assertEqual(results,expectations)
 
 	# Edge cases
-	def test_leadingspace_heading(self):
-		block = " # This is a heading"
+	def test_multi_types(self):
+		block = "- a list item\n1. something else\n- a list item"
 		results = block_to_blocktype(block)
-		expectations = BlockType.HEADING
+		expectations = BlockType.PARAGRAPH
 		self.assertEqual(results,expectations)
+	def test_empty_list_item(self):
+		block = "- something\n - \n - test"
+		results = block_to_blocktype(block)
+		expectations = BlockType.ULIST
+		self.assertEqual(results,expectations)
+	def test_empty_quote_item(self):
+		block = "> test\n>\n> test"
+		results = block_to_blocktype(block)
+		expectations = BlockType.QUOTE
+		self.assertEqual(results,expectations)
+	def test_empty_olist_item(self):
+		block = "1. something\n 2. \n 3. test"
+		results = block_to_blocktype(block)
+		expectations = BlockType.OLIST
+		self.assertEqual(results,expectations)
+	def test_empty_block(self):
+		block = ""
+		results = block_to_blocktype(block)
+		expectations = None
+		self.assertEqual(results,expectations)
+	def test_multidigit_olist(self):
+		lines_list = []
+		for i in range(1,101):
+			line = f"{i}. list number {i}"
+			lines_list.append(line)
+		block = "\n".join(lines_list)
+		results = block_to_blocktype(block)
+		expectations = BlockType.OLIST
+		self.assertEqual(results,expectations)
+
+
