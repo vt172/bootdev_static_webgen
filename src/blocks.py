@@ -27,28 +27,44 @@ def markdown_to_blocks(text):
 	return blocks
 
 def block_to_blocktype(block):
-	if re.findall(r"(^#{1,6}\ .+)|((^\s#{1,6}\ .+))", block):
+	# easy cases : no need for multiline checks
+	if re.findall(r"^#{1,6}\ .*", block):
 		return BlockType.HEADING
-	if re.findall(r"(^```[\s\S]*?```$)|(^\s```[\s\S]*?```$)", block):
+	elif re.findall(r"^```[\s\S]*?```$", block):
 		return BlockType.CODE
-	if re.findall(r"(^(>.*\n?)+$)|(^\s(>.*\n?)+$)", block):
-		return BlockType.QUOTE
-	if re.findall(r"(^(-.*\n?)+$)|(^\s(-.*\n?)+$)", block):
-		return BlockType.ULIST
-	if re.findall(r"(\d. .+)|(\s\d. .+)", block):
-		split_lines = block.split("\n")
-		i = 1
-		is_olist = True
-		for line in split_lines:
-			line = line.strip(' ')
-			if int(line[0]) == i:
-				i += 1
-			else:
-				is_olist = False
-				break
-		if is_olist:
-			return BlockType.OLIST
-		return BlockType.PARAGRAPH
 
+	# multiline cases
+	lines = block.split("\n")
+	blocktype_checklist = []
+	i = 1
+
+	## creating a checklist
+	for line in lines:
+		line = line.strip()
+		if re.findall(r"^>\s.*", line):
+			blocktype_checklist.append("quote")
+			continue
+		if re.findall(r"^-\s.*", line):
+			blocktype_checklist.append("ulist")
+			continue
+		olist_match = re.match(r"(\d)+\.\s", line)
+		if olist_match and int(olist_match.group(1)) == i:
+			blocktype_checklist.append("olist")
+			i+=1
+			continue
+		blocktype_checklist.append("paragraph")
+
+	## checking the list
+	if "paragraph" in blocktype_checklist:
+		return BlockType.PARAGRAPH
+	elif all(line_type == "quote" for line_type in blocktype_checklist):
+		return BlockType.QUOTE
+	elif all(line_type == "ulist" for line_type in blocktype_checklist):
+		return BlockType.ULIST
+	elif all(line_type == "olist" for line_type in blocktype_checklist):
+		return BlockType.OLIST
 	else:
 		return BlockType.PARAGRAPH
+
+
+print(block_to_blocktype("1. an item\n 32. an item\n 3. an item"))
