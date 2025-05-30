@@ -1,4 +1,7 @@
 from enum import Enum
+from htmlnode import *
+from inline import *
+from textnode import *
 import re
 
 class BlockType(Enum):
@@ -71,3 +74,95 @@ def block_to_blocktype(block):
 		return BlockType.OLIST
 	else:
 		return BlockType.PARAGRAPH
+
+# takes an HtmlNode and a blocktype and returns a stripped_value to be used to create an HtmlNode
+# Doesn't handle Code
+def strip_block_delimiter(htmlnode, blocktype):
+	value = htmlnode.value
+	stripped_values = []
+	lines = value.split("\n")
+	for line in lines:
+		match blocktype:
+			# the easy cases
+			case BlockType.PARAGRAPH:
+				stripped_values.append(line.lstrip())
+			# It takes away the spaces on the left side, and removes the first character, which is either > or -
+			case BlockType.QUOTE:
+				stripped_values.append(line.lstrip()[1:].lstrip())
+			case BlockType.ULIST:
+				stripped_values.append(line.lstrip()[1:].lstrip())
+			# More difficult cases
+			case BlockType.OLIST:
+				olist_match = re.match(r"(\d+).*", line)
+				# group 1 correspond to this part of the regex : (\d) which is the digit, then strip any remaining space
+				stripped_values.append(line.strip(olist_match.group(1)).lstrip()) 
+			case BlockType.HEADING:
+				heading_match = re.match(r"(#{1,6}).*", line)
+				# same logic than OLIST
+				stripped_values.append(line.strip(heading_match.group(1)).lstrip())
+			case BlockType.CODE:
+				pass
+				# here I'm following Boot.Dev Lane advice on working with CODE types manually.
+	stripped_value = "\n".join(stripped_values)
+
+	return stripped_value
+
+# text a single markdown inline text and returns htmlnodes.
+# to be used to in the child_nodes argument 
+# to create a ParentNode out of a single block text.
+def text_to_htmlnodes(text):
+	textnodes = text_to_textnode(text)
+	htmlnodes = []
+	for textnode in textnodes:
+		htmlnodes.append(textnode_to_htmlnode(textnode))
+	return htmlnodes
+
+
+
+
+def markdown_to_html(text):
+	if not text:
+		return None
+
+	blocks = markdown_to_blocks(text)
+
+	for block in blocks:
+		blocktype = block_to_blocktype(block)
+		child_nodes = text_to_htmlnodes(block)
+
+		for child in child_nodes:
+			child.value = strip_block_delimiter(child, blocktype)
+
+		blocknodes = []
+
+		## THAT PART SHOULD BE A HELPER FUNCTION
+		match blocktype:
+			case BlockType.QUOTE:
+				blocknodes.append(ParentNode("blockquote",child_nodes))
+			case BlockType.ULIST:
+				ulist_html_value = "<ul>"
+				items = block.split("\n").lstrip()
+				for item in items:
+					itemvalue += f"<li>{item}</li>"
+				ulist_html_value += "</ul>"
+
+	return ParentNode("div",blocknodes).to_html()
+
+
+
+
+text = '''
+This is **bolded** paragraph
+text in a p
+tag here
+
+This is another paragraph with _italic_ text and `code` here
+
+1. This is 
+2. An ordered list
+
+> Quote
+> Life is a Miracle, God probably
+'''
+result = markdown_to_html(text)
+print(result)

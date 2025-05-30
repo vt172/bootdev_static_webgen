@@ -38,7 +38,6 @@ class LeafNode(HTMLNode):
     def __init__(self, tag, value, props=None):
         super().__init__(tag=tag, value=value, children=None, props=props)
 
-    # Let's come back here another time. Test.sh to get the error. Possibly coming from here
     def to_html(self):
         if self.value is None:
             raise ValueError("All leaf nodes must have a value.")
@@ -70,7 +69,6 @@ class ParentNode(HTMLNode):
             for child in child_list:
                 result += (
                     child.to_html()
-                )  # TOCHANGE this was vibe coding without understanding...
-
+                )  
         result += f"</{self.tag}>"
         return result
