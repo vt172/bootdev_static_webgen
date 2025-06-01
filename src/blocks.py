@@ -84,13 +84,11 @@ def inject_htmltag_to_items(block,blocktype):
 		match blocktype:
 			case BlockType.ULIST:
 				tag = "ul"
-				print("+++ ULIST line : ", item)
 				if item:
 					stripped = item.strip("-").lstrip()
 
 			case BlockType.OLIST:
 				tag = "ol"
-				print("+++ OLIST line : ", item)
 				olist_match = re.match(r"(\d+).*", item)
 				# group 1 correspond to this part of the regex : (\d) which is the digit, then strip any remaining space
 				if olist_match:
@@ -181,6 +179,7 @@ def markdown_to_html(text):
 		print(f"======\nBLOCKTYPE : {blocktype}")
 		print("BLOCKNODE RESULTS :")
 		if blocktype == BlockType.CODE:
+			block = block.strip("```")
 			blocknode = LeafNode("pre",f"<code>{block}</code>")
 		else:
 			child_nodes, tag = prepare_block(block, blocktype)
@@ -190,32 +189,3 @@ def markdown_to_html(text):
 		blocknodes.append(blocknode) if blocknode else print("None")
 	
 	return ParentNode("div",blocknodes)
-
-
-
-text = '''
-###### the effect of Jesus on your body
-
-This is **bolded** paragraph
-text in a p
-tag here
-
-This is another paragraph with _italic_ text and `code` here
-
-1. This is 
-2. An ordered list, **but with bold**
-
-> Quote
-> Life is a Miracle, **God** probably
-
-- List
-- List with _italic_
-
-``` 
-print("Hello World!")
-```
-
-'''
-result = markdown_to_html(text)
-print("=====")
-print("FINAL RESULTS: \n",result.to_html())
