@@ -75,37 +75,38 @@ def block_to_blocktype(block):
 	else:
 		return BlockType.PARAGRAPH
 
-# takes an HtmlNode and a blocktype and returns a stripped_value to be used to create an HtmlNode
+# takes an HtmlNode and a blocktype and returns a stripped_value 
+# and tag to be used to create an HtmlNode
 # Doesn't handle Code, because Code has not inline treatment
-# careful as this function assumes that the item values have <li></li>inside.
-def strip_block_delimiter(htmlnode, blocktype):
+def block_sanitizer(htmlnode, blocktype):
 	value = htmlnode.value
 	stripped_values = []
 	lines = value.split("\n")
+	tag = ""
 	for line in lines:
 		match blocktype:
 			# the easy cases
 			case BlockType.PARAGRAPH:
+				tag = "p"
 				stripped_values.append(line.lstrip())
 			# It takes away the spaces on the left side, and removes the first character, which is either > or -
 			case BlockType.QUOTE:
+				tag = "blockquote"
 				stripped_values.append(line.lstrip()[1:].lstrip())
-
 			# more difficult cases
 			case BlockType.ULIST:
-				print("==== ULIST, before strip : ", line)
+				tag = "ul"
 				line = line.strip("<li>")
 				line = line.strip("</li>")
 
 				stripped = line.lstrip()[1:].lstrip()
 
 				line = f"<li>{stripped}</li>"
-				print("==== ULIST : ", line)
 
 				stripped_values.append(line)
 
 			case BlockType.OLIST:
-				print("==== OLIST, before strip : ", line)
+				tag = "ol"
 				line = line.strip("<li>")
 				line = line.strip("</li>")
 
@@ -115,22 +116,25 @@ def strip_block_delimiter(htmlnode, blocktype):
 				stripped = stripped.strip(".").lstrip()
 
 				line = f"<li>{stripped}</li>"
-				print("===== OLIST : ", line)
 
 				stripped_values.append(line)
+				tag = "olist"
 
+			# careful here as it doesn't work for HEADINGS with multilines
 			case BlockType.HEADING:
 				heading_match = re.match(r"(#{1,6}).*", line)
-				# same logic than OLIST
-				stripped_values.append(line.strip(heading_match.group(1)).lstrip())
+				tag = f"h{len(heading_match.group(1))}"
+				stripped = line.strip(heading_match.group(1)).lstrip()
+				return stripped, tag
+
 			case BlockType.CODE: # code needs no inline processing
 				pass
 			case _:
 				raise Exception("blocktype must be a BlockType")
+
 	stripped_value = "\n".join(stripped_values)
 
-	return stripped_value
-
+	return stripped_value, tag
 
 # text a single markdown inline text and returns htmlnodes.
 # to be used to in the child_nodes argument 
@@ -142,43 +146,48 @@ def text_to_htmlnodes(text):
 		htmlnodes.append(textnode_to_htmlnode(textnode))
 	return htmlnodes
 
-# Lists handler
-def items_to_html(block, blocktype):
-	items = block.split("\n")
+# Prepare the block to be handled by create_blocknode
+# it just calls the previous functions to sanitize
+# the data for create_blocknode.
+def prepare_block(block, blocktype):
+	blocktype = block_to_blocktype(block) # figuring out the blocktype
+	# this have to be here in this order, because strip_block_delimiter
+	# suppose that this functions has done its work.
+	child_nodes = text_to_htmlnodes(block) # diving the block into htmlnodes
+	for child in child_nodes: # sanitizing data
+		value, tag = block_sanitizer(child, blocktype)
+		child.value = value
+	return child_nodes, tag
 
-	results = []
-	for item in items:
-		if blocktype == BlockType.ULIST or blocktype == BlockType.OLIST:
-			string = f"<li>{item}</li>"
-			results.append(string)
-		else:
-			return block
-
-	result = "\n".join(results)
-	return result
+# creates the ParentNode for the block : a "blocknode"
+def create_blocknode(child_nodes,blocktype,tag):
+	match blocktype:
+		case BlockType.PARAGRAPH:
+			return ParentNode(tag,child_nodes)
+		case BlockType.HEADING:
+			return ParentNode(tag,child_nodes)
 
 
 def markdown_to_html(text):
 	if not text:
 		return None
-
 	blocks = markdown_to_blocks(text)
-
+	blocknodes = []
 	for block in blocks:
-		blocktype = block_to_blocktype(block) # figuring out the blocktype
-		block = items_to_html(block, blocktype) # making sure the items have the right tag
-		child_nodes = text_to_htmlnodes(block) # diving the block into htmlnodes
-		child_values = []
+		blocktype = block_to_blocktype(block)
+		child_nodes, tag = prepare_block(block, blocktype)
+		blocknode = create_blocknode(child_nodes, blocktype, tag)
+		print(blocknode.to_html() if blocknode else "None")
+			
 
-		for child in child_nodes:
-			child.value = strip_block_delimiter(child, blocktype)
-		blocknodes = []
 	
 	return "Hello"
 
 
 
 text = '''
+# the effect of Jesus on your body
+
 This is **bolded** paragraph
 text in a p
 tag here
