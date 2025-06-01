@@ -76,7 +76,8 @@ def block_to_blocktype(block):
 		return BlockType.PARAGRAPH
 
 # takes an HtmlNode and a blocktype and returns a stripped_value to be used to create an HtmlNode
-# Doesn't handle Code
+# Doesn't handle Code, because Code has not inline treatment
+# careful as this function assumes that the item values have <li></li>inside.
 def strip_block_delimiter(htmlnode, blocktype):
 	value = htmlnode.value
 	stripped_values = []
@@ -89,23 +90,47 @@ def strip_block_delimiter(htmlnode, blocktype):
 			# It takes away the spaces on the left side, and removes the first character, which is either > or -
 			case BlockType.QUOTE:
 				stripped_values.append(line.lstrip()[1:].lstrip())
+
+			# more difficult cases
 			case BlockType.ULIST:
-				stripped_values.append(line.lstrip()[1:].lstrip())
-			# More difficult cases
+				print("==== ULIST, before strip : ", line)
+				line = line.strip("<li>")
+				line = line.strip("</li>")
+
+				stripped = line.lstrip()[1:].lstrip()
+
+				line = f"<li>{stripped}</li>"
+				print("==== ULIST : ", line)
+
+				stripped_values.append(line)
+
 			case BlockType.OLIST:
+				print("==== OLIST, before strip : ", line)
+				line = line.strip("<li>")
+				line = line.strip("</li>")
+
 				olist_match = re.match(r"(\d+).*", line)
 				# group 1 correspond to this part of the regex : (\d) which is the digit, then strip any remaining space
-				stripped_values.append(line.strip(olist_match.group(1)).lstrip()) 
+				stripped = line.strip(olist_match.group(1))
+				stripped = stripped.strip(".").lstrip()
+
+				line = f"<li>{stripped}</li>"
+				print("===== OLIST : ", line)
+
+				stripped_values.append(line)
+
 			case BlockType.HEADING:
 				heading_match = re.match(r"(#{1,6}).*", line)
 				# same logic than OLIST
 				stripped_values.append(line.strip(heading_match.group(1)).lstrip())
-			case BlockType.CODE:
+			case BlockType.CODE: # code needs no inline processing
 				pass
-				# here I'm following Boot.Dev Lane advice on working with CODE types manually.
+			case _:
+				raise Exception("blocktype must be a BlockType")
 	stripped_value = "\n".join(stripped_values)
 
 	return stripped_value
+
 
 # text a single markdown inline text and returns htmlnodes.
 # to be used to in the child_nodes argument 
@@ -117,7 +142,20 @@ def text_to_htmlnodes(text):
 		htmlnodes.append(textnode_to_htmlnode(textnode))
 	return htmlnodes
 
+# Lists handler
+def items_to_html(block, blocktype):
+	items = block.split("\n")
 
+	results = []
+	for item in items:
+		if blocktype == BlockType.ULIST or blocktype == BlockType.OLIST:
+			string = f"<li>{item}</li>"
+			results.append(string)
+		else:
+			return block
+
+	result = "\n".join(results)
+	return result
 
 
 def markdown_to_html(text):
@@ -127,27 +165,16 @@ def markdown_to_html(text):
 	blocks = markdown_to_blocks(text)
 
 	for block in blocks:
-		blocktype = block_to_blocktype(block)
-		child_nodes = text_to_htmlnodes(block)
+		blocktype = block_to_blocktype(block) # figuring out the blocktype
+		block = items_to_html(block, blocktype) # making sure the items have the right tag
+		child_nodes = text_to_htmlnodes(block) # diving the block into htmlnodes
+		child_values = []
 
 		for child in child_nodes:
 			child.value = strip_block_delimiter(child, blocktype)
-
 		blocknodes = []
-
-		## THAT PART SHOULD BE A HELPER FUNCTION
-		match blocktype:
-			case BlockType.QUOTE:
-				blocknodes.append(ParentNode("blockquote",child_nodes))
-			case BlockType.ULIST:
-				ulist_html_value = "<ul>"
-				items = block.split("\n").lstrip()
-				for item in items:
-					itemvalue += f"<li>{item}</li>"
-				ulist_html_value += "</ul>"
-
-	return ParentNode("div",blocknodes).to_html()
-
+	
+	return "Hello"
 
 
 
@@ -159,7 +186,7 @@ tag here
 This is another paragraph with _italic_ text and `code` here
 
 1. This is 
-2. An ordered list
+2. An ordered list with *bold*
 
 > Quote
 > Life is a Miracle, God probably
