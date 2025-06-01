@@ -81,9 +81,11 @@ def inject_htmltag_to_items(block,blocktype):
 	items = block.split("\n")
 	injected = []
 	for item in items:
+		item = item.lstrip()
 		match blocktype:
 			case BlockType.ULIST:
 				tag = "ul"
+				print("+++ ULIST line ", item)
 				if item:
 					stripped = item.strip("-").lstrip()
 
@@ -98,7 +100,7 @@ def inject_htmltag_to_items(block,blocktype):
 		tagged = f"<li>{stripped}</li>"
 		injected.append(tagged)
 
-	return "\n".join(injected)
+	return "".join(injected)
 
 
 # takes an HtmlNode and a blocktype and returns a stripped_value 
@@ -116,7 +118,7 @@ def block_sanitizer(htmlnode, blocktype):
 		match blocktype:
 			case BlockType.PARAGRAPH:
 				tag = "p"
-				stripped_values.append(line.lstrip())
+				stripped_values.append(line)
 			# It takes away the spaces on the left side, and removes the first character, which is either > or -
 			case BlockType.QUOTE:
 				tag = "blockquote"
@@ -140,7 +142,14 @@ def block_sanitizer(htmlnode, blocktype):
 				stripped_values.append(line)
 				tag = "ol"
 
-	stripped_value = "\n".join(stripped_values)
+	
+	# Handle different joining strategies for different block types
+	if blocktype == BlockType.PARAGRAPH:
+	    stripped_value = " ".join(stripped_values)
+	elif blocktype == BlockType.QUOTE:
+	    stripped_value = "".join(stripped_values)  # No separator for quotes
+	else:
+	    stripped_value = "\n".join(stripped_values)
 
 	# finally returning all values
 	return stripped_value, tag
@@ -179,7 +188,7 @@ def markdown_to_html(text):
 		print(f"======\nBLOCKTYPE : {blocktype}")
 		print("BLOCKNODE RESULTS :")
 		if blocktype == BlockType.CODE:
-			block = block.strip("```")
+			block = block[3:-3].lstrip()
 			blocknode = LeafNode("pre",f"<code>{block}</code>")
 		else:
 			child_nodes, tag = prepare_block(block, blocktype)
@@ -187,5 +196,7 @@ def markdown_to_html(text):
 		print(blocknode.to_html())
 
 		blocknodes.append(blocknode) if blocknode else print("None")
-	
+	print("===== FINAL RESULTS:")
+	print(ParentNode("div",blocknodes).to_html())
+
 	return ParentNode("div",blocknodes)

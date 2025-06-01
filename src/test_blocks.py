@@ -130,7 +130,6 @@ This is another paragraph with _italic_ text and `code` here
 	        html.strip("\n"),
 	        "<div><p>This is <b>bolded</b> paragraph text in a p tag here</p><p>This is another paragraph with <i>italic</i> text and <code>code</code> here</p></div>",
 	    )
-'''
 	def test_codeblock(self):
 	    md = """
 ```
@@ -179,9 +178,8 @@ the **same** even with inline stuff
 		html = node.to_html()
 		self.assertEqual(
 			html,
-			"<div><blockquote>A Quote from a famous <i>philosopher</i>\nWho is this <b>person?</b></blockquote></div>"
+			"<div><blockquote>A Quote from a famous <i>philosopher</i>Who is this <b>person?</b></blockquote></div>"
 		)
-
 	def test_headings(self):
 		md = """
 # First
@@ -198,9 +196,7 @@ the **same** even with inline stuff
 """
 		node = markdown_to_html(md)
 		html = node.to_html()
-		print("CACA")
 		self.assertEqual(
 			html,
 			"<div><h1>First</h1><h2>Second</h2><h3>Third</h3><h4>Fourth</h4><h5>Fith</h5><h6>Sixth</h6></div>"
 		)
-'''
