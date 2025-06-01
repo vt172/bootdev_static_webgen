@@ -75,8 +75,19 @@ def block_to_blocktype(block):
 	else:
 		return BlockType.PARAGRAPH
 
+# takes a list block and returns an injected string
+# with <li>
+def inject_htmltag_to_items(block):
+	items = block.split("\n")
+	injected = []
+	for item in items:
+		tagged = f"<li>{item}</li>"
+		injected.append(tagged)
+	return "\n".join(injected)
+
+
 # takes an HtmlNode and a blocktype and returns a stripped_value 
-# and tag to be used to create an HtmlNode
+# AND tag to be used to create an HtmlNode
 # Doesn't handle Code, because Code has not inline treatment
 def block_sanitizer(htmlnode, blocktype):
 	value = htmlnode.value
@@ -92,33 +103,21 @@ def block_sanitizer(htmlnode, blocktype):
 			# It takes away the spaces on the left side, and removes the first character, which is either > or -
 			case BlockType.QUOTE:
 				tag = "blockquote"
-				stripped_values.append(line.lstrip()[1:].lstrip())
+				stripped_values.append(line.lstrip().strip(">").lstrip())
 			# more difficult cases
 			case BlockType.ULIST:
 				tag = "ul"
-				line = line.strip("<li>")
-				line = line.strip("</li>")
-
-				stripped = line.lstrip()[1:].lstrip()
-
-				line = f"<li>{stripped}</li>"
-
-				stripped_values.append(line)
+				stripped = line.strip("-").lstrip()
+				stripped_values.append(stripped)
 
 			case BlockType.OLIST:
 				tag = "ol"
-				line = line.strip("<li>")
-				line = line.strip("</li>")
-
 				olist_match = re.match(r"(\d+).*", line)
 				# group 1 correspond to this part of the regex : (\d) which is the digit, then strip any remaining space
-				stripped = line.strip(olist_match.group(1))
-				stripped = stripped.strip(".").lstrip()
-
-				line = f"<li>{stripped}</li>"
-
-				stripped_values.append(line)
-				tag = "olist"
+				if olist_match:
+					stripped = line.strip(olist_match.group(1))
+					stripped = stripped.strip(".").lstrip()
+					stripped_values.append(stripped)
 
 			# careful here as it doesn't work for HEADINGS with multilines
 			case BlockType.HEADING:
@@ -132,8 +131,8 @@ def block_sanitizer(htmlnode, blocktype):
 			case _:
 				raise Exception("blocktype must be a BlockType")
 
+	# finally returning all values
 	stripped_value = "\n".join(stripped_values)
-
 	return stripped_value, tag
 
 # text a single markdown inline text and returns htmlnodes.
@@ -151,8 +150,8 @@ def text_to_htmlnodes(text):
 # the data for create_blocknode.
 def prepare_block(block, blocktype):
 	blocktype = block_to_blocktype(block) # figuring out the blocktype
-	# this have to be here in this order, because strip_block_delimiter
-	# suppose that this functions has done its work.
+	if blocktype == BlockType.ULIST or blocktype == BlockType.OLIST:
+		block = inject_htmltag_to_items(block)
 	child_nodes = text_to_htmlnodes(block) # diving the block into htmlnodes
 	for child in child_nodes: # sanitizing data
 		value, tag = block_sanitizer(child, blocktype)
@@ -161,11 +160,15 @@ def prepare_block(block, blocktype):
 
 # creates the ParentNode for the block : a "blocknode"
 def create_blocknode(child_nodes,blocktype,tag):
-	match blocktype:
-		case BlockType.PARAGRAPH:
-			return ParentNode(tag,child_nodes)
-		case BlockType.HEADING:
-			return ParentNode(tag,child_nodes)
+	normal_cases = blocktype == BlockType.PARAGRAPH \
+	or blocktype == BlockType.HEADING \
+	or blocktype == BlockType.QUOTE \
+	or blocktype == BlockType.ULIST \
+	or blocktype == BlockType.OLIST
+
+	if normal_cases:
+		return ParentNode(tag,child_nodes)
+	
 
 
 def markdown_to_html(text):
@@ -177,11 +180,13 @@ def markdown_to_html(text):
 		blocktype = block_to_blocktype(block)
 		child_nodes, tag = prepare_block(block, blocktype)
 		blocknode = create_blocknode(child_nodes, blocktype, tag)
-		print(blocknode.to_html() if blocknode else "None")
-			
+		print("======\nBLOCKNODE RESULTS :")
+		print(f"BLOCKTYPE : {blocktype}")
+		print(blocknode.to_html())
 
+		blocknodes.append(blocknode) if blocknode else print("None")
 	
-	return "Hello"
+	return ParentNode("div",blocknodes)
 
 
 
@@ -195,10 +200,14 @@ tag here
 This is another paragraph with _italic_ text and `code` here
 
 1. This is 
-2. An ordered list with *bold*
+2. An ordered list with bold, **but with bold**
 
 > Quote
-> Life is a Miracle, God probably
+> Life is a Miracle, **God** probably
+
+- List
+- List with _italic_
 '''
 result = markdown_to_html(text)
-print(result)
+print("=====")
+print("FINAL RESULTS: ",result)
