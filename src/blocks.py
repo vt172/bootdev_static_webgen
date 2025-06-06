@@ -85,7 +85,6 @@ def inject_htmltag_to_items(block,blocktype):
 		match blocktype:
 			case BlockType.ULIST:
 				tag = "ul"
-				print("+++ ULIST line ", item)
 				if item:
 					stripped = item.strip("-").lstrip()
 
@@ -185,18 +184,13 @@ def markdown_to_html(text):
 
 	for block in blocks:
 		blocktype = block_to_blocktype(block)
-		print(f"======\nBLOCKTYPE : {blocktype}")
-		print("BLOCKNODE RESULTS :")
 		if blocktype == BlockType.CODE:
 			block = block[3:-3].lstrip()
 			blocknode = LeafNode("pre",f"<code>{block}</code>")
 		else:
 			child_nodes, tag = prepare_block(block, blocktype)
 			blocknode = ParentNode(tag, child_nodes)
-		print(blocknode.to_html())
 
 		blocknodes.append(blocknode) if blocknode else print("None")
-	print("===== FINAL RESULTS:")
-	print(ParentNode("div",blocknodes).to_html())
 
 	return ParentNode("div",blocknodes)
