@@ -155,3 +155,5 @@ class Test_text_to_textnode(unittest.TestCase):
 		]
 		self.assertEqual(results,expectations)
 
+if __name__ == "__main__":
+	unittest.main()

@@ -200,3 +200,6 @@ the **same** even with inline stuff
 			html,
 			"<div><h1>First</h1><h2>Second</h2><h3>Third</h3><h4>Fourth</h4><h5>Fith</h5><h6>Sixth</h6></div>"
 		)
+
+if __name__ == "__main__":
+	unittest.main()
