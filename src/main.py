@@ -20,7 +20,7 @@ global content_path
 
 current_path = Path.cwd()
 static_path = current_path / "static"
-public_path = current_path / "public"
+public_path = current_path / "docs"
 template_path = current_path / "template.html"
 content_path = current_path / "content"
 
