@@ -65,7 +65,6 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
 			raise Exception("This functions works with TextNode, please insert a list of TextNode instead")
 		
 		node_text_split = node.text.split(delimiter)
-		print(f"===== node_text_split is : {node_text_split}")
 
 		in_delimiter = node_text_split[0] == ""
 

@@ -182,12 +182,21 @@ def split_nodes_link(old_nodes):
 
 	return new_nodes
 
+def remove_empty_text_nodes(nodes):
+	"""Remove any TextNodes that have empty text content"""
+	return [node for node in nodes if not (
+		isinstance(node, TextNode) and 
+		node.text_type == TextType.TEXT and 
+		not node.text.strip()  # Remove nodes with only whitespace too
+	)]
+
 def text_to_textnode(text):
 	new_nodes = [TextNode(text,TextType.TEXT)]
-	for node in new_nodes:
-		new_nodes = split_nodes_delimiter(new_nodes, "**", TextType.BOLD)
-		new_nodes = split_nodes_delimiter(new_nodes, "_", TextType.ITALIC)
-		new_nodes = split_nodes_delimiter(new_nodes, "`", TextType.CODE)
-		new_nodes = split_nodes_image(new_nodes)
-		new_nodes = split_nodes_link(new_nodes)
+	new_nodes = split_nodes_delimiter(new_nodes, "**", TextType.BOLD)
+	new_nodes = split_nodes_delimiter(new_nodes, "_", TextType.ITALIC)
+	new_nodes = split_nodes_delimiter(new_nodes, "`", TextType.CODE)
+	new_nodes = split_nodes_image(new_nodes)
+	new_nodes = split_nodes_link(new_nodes)
+
+	new_nodes = remove_empty_text_nodes(new_nodes)
 	return new_nodes

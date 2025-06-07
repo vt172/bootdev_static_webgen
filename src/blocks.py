@@ -108,10 +108,26 @@ def inject_htmltag_to_items(block,blocktype):
 def block_sanitizer(htmlnode, blocktype):
 	value = htmlnode.value
 	stripped_values = []
-	stripped_items = []
+
+	# special cases for headings:
+	if blocktype == BlockType.HEADING:
+		heading_match = re.match(r"(#{1,6}).*", value.lstrip())
+		if heading_match:
+			tag = f"h{len(heading_match.group(1))}"
+			# not ideal but I set this up as a workaround for inline treatment of titles
+			# some titles will have multiple htmlnodes, and this needs to keep track of it globally
+			# so we can attribute the right tag to the node without the express heading marker 
+			global heading_tag
+			heading_tag = tag
+
+			stripped = value.strip(heading_match.group(1)).lstrip()
+			stripped_values.append(stripped)
+		else:
+			stripped_values.append(value)
+			tag = heading_tag
 
 	lines = value.split("\n")
-	item_lines = value.split("<li>")
+
 
 	for line in lines:
 		match blocktype:
@@ -123,12 +139,6 @@ def block_sanitizer(htmlnode, blocktype):
 				tag = "blockquote"
 				stripped_values.append(line.lstrip().strip(">").lstrip())
 			# more difficult cases
-			# careful here as it doesn't work for HEADINGS with multilines
-			case BlockType.HEADING:
-				heading_match = re.match(r"(#{1,6}).*", line)
-				tag = f"h{len(heading_match.group(1))}"
-				stripped = line.strip(heading_match.group(1)).lstrip()
-				return stripped, tag
 			case BlockType.CODE: # CODE, to come back here
 				pass
 
@@ -147,9 +157,10 @@ def block_sanitizer(htmlnode, blocktype):
 	    stripped_value = " ".join(stripped_values)
 	elif blocktype == BlockType.QUOTE:
 	    stripped_value = "".join(stripped_values)  # No separator for quotes
+	elif blocktype == BlockType.HEADING:
+		stripped_value = " ".join(stripped_values)	
 	else:
 	    stripped_value = "\n".join(stripped_values)
-
 	# finally returning all values
 	return stripped_value, tag
 
@@ -178,6 +189,7 @@ def prepare_block(block, blocktype):
 
 def markdown_to_html(text):
 	if not text:
+		print("====== Not Text")
 		return None
 	blocks = markdown_to_blocks(text)
 	blocknodes = []
@@ -190,7 +202,7 @@ def markdown_to_html(text):
 		else:
 			child_nodes, tag = prepare_block(block, blocktype)
 			blocknode = ParentNode(tag, child_nodes)
-
-		blocknodes.append(blocknode) if blocknode else print("None")
+		if blocknode:
+			blocknodes.append(blocknode) 
 
 	return ParentNode("div",blocknodes)
