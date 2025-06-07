@@ -35,21 +35,20 @@ def get_items(path):
     return static_items
 
 
+def delete_public(path):
+    if not path.exists():
+        print("Please create a public folder at the root of the project")
+        return
+    for item in path.iterdir():
+        if item.is_file():
+            print(f"Deleting file : {item}")
+            item.unlink()
+        if item.is_dir():
+            print(f"Deleting folder : {item}")
+            shutil.rmtree(item)
+
 def copy_static():
     print(f"==== COPYING {static_path}")
-
-    def delete_public(path):
-        if not path.exists():
-            print("Please create a public folder at the root of the project")
-            return
-        for item in path.iterdir():
-            if item.is_file():
-                print(f"Deleting file : {item}")
-                item.unlink()
-            if item.is_dir():
-                print(f"Deleting folder : {item}")
-                shutil.rmtree(item)
-        return
 
     def create_folders(items):
         for folder in items:
@@ -64,8 +63,6 @@ def copy_static():
             print(f"Copying : {file} to public")
             shutil.copy(file, public_path / relative_to / file.name)
         return
-
-    delete_public(public_path)
 
     static_items = get_items(static_path)
     folders = [folder for folder in static_items if folder.is_dir()]
@@ -83,7 +80,7 @@ def extract_title(md):
     else:
         raise Exception(f"No title has been found\nFile:\n{md}")
 
-def generate_page(from_path, template_path, dest_path):
+def generate_page(from_path, template_path, dest_path, basepath):
     print(f"Generating page from {from_path} to {dest_path} using {template_path}.\n\n")
 
     with from_path.open() as f: 
@@ -96,6 +93,9 @@ def generate_page(from_path, template_path, dest_path):
 
     new_html = template.replace("{{ Title }}", title)
     new_html = new_html.replace("{{ Content }}", content)
+
+    new_html = new_html.replace('href="/"', f'href={basepath}')
+    new_html = new_html.replace('src="/"', f'src={basepath}')
 
     dest_path.touch()
     with open(dest_path, 'w') as f:
@@ -115,17 +115,22 @@ def content_to_destination(file):
     htmlfile = file.stem + ".html"
     return public_path / relative_to / htmlfile
 
-def generate_page_recursively(dir_path=content_path):
-    files = [file for file in get_items(dir_path) if file.is_file()]
-    folders = [folder for folder in get_items(dir_path) if folder.is_dir()]
+def generate_page_recursively(basepath):
+    files = [file for file in get_items(content_path) if file.is_file()]
+    folders = [folder for folder in get_items(content_path) if folder.is_dir()]
     create_htmlfolders(folders)
     for file in files:
         dest_path = content_to_destination(file)
-        generate_page(file, template_path, dest_path)
+        generate_page(file, template_path, dest_path, basepath)
 
 def main():
+    if len(sys.argv) >= 2:
+        basepath = sys.argv[1]
+    else:
+        basepath = "/"
+    delete_public(public_path)
     copy_static()
-    generate_page_recursively()
+    generate_page_recursively(basepath)
 
 
 
