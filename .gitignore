@@ -2,3 +2,4 @@ __pycache__/
 public/
 logs/
 .DS_Store*
+*swp
