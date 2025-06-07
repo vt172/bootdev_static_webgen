@@ -115,16 +115,17 @@ def content_to_destination(file):
     htmlfile = file.stem + ".html"
     return public_path / relative_to / htmlfile
 
-def main():
-    copy_static()
-    files = [file for file in get_items(content_path) if file.is_file()]
-    folders = [folder for folder in get_items(content_path) if folder.is_dir()]
+def generate_page_recursively(dir_path=content_path):
+    files = [file for file in get_items(dir_path) if file.is_file()]
+    folders = [folder for folder in get_items(dir_path) if folder.is_dir()]
     create_htmlfolders(folders)
     for file in files:
-        print(f"=================================== ")
         dest_path = content_to_destination(file)
         generate_page(file, template_path, dest_path)
-            
+
+def main():
+    copy_static()
+    generate_page_recursively()
 
 
 
