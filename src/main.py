@@ -94,14 +94,8 @@ def generate_page(from_path, template_path, dest_path, basepath):
     new_html = template.replace("{{ Title }}", title)
     new_html = new_html.replace("{{ Content }}", content)
 
-    old_href = ""
-    new_href = ""
-    old_src = ""
-    new_src = ""
-
     new_html = new_html.replace('href="/', f'href="{basepath}')
     new_html = new_html.replace('src="/', f'src="{basepath}')
-    print(new_html) 
 
     dest_path.touch()
     with open(dest_path, 'w') as f:
